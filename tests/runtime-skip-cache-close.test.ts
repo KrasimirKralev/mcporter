@@ -58,9 +58,55 @@ it.each(['close', 'supersede'])(
       expect(transport.close).toHaveBeenCalledOnce();
       expect(clientClose).toHaveBeenCalledOnce();
       await expect(cache.getConnectionInfo(definition.name)).resolves.toBeUndefined();
+      await expect(cache.getInstructions(definition.name)).resolves.toBeUndefined();
     } finally {
       pending.resolve(context);
       await Promise.allSettled([closing, connecting]);
     }
   }
 );
+
+it('keeps instructions from an uncached connection until the next connect or definition change', async () => {
+  const definition: ServerDefinition = {
+    name: 'guided',
+    command: { kind: 'stdio', command: 'unused', args: [], cwd: process.cwd() },
+  };
+  const cache = new RuntimeConnectionCache(new Map([[definition.name, definition]]), {
+    logger: { debug: vi.fn(), info: vi.fn(), warn: vi.fn(), error: vi.fn() },
+    clientInfo: { name: 'test', version: '1' },
+    oauthTimeoutMs: 1000,
+    elicitationHandler: async () => ({ action: 'decline' }),
+  });
+  const connectWithInstructions = async (instructions: string | undefined) => {
+    const client = new Client({ name: 'test', version: '1' });
+    vi.spyOn(client, 'getInstructions').mockReturnValue(instructions);
+    vi.spyOn(client, 'close').mockResolvedValue(undefined);
+    const transport = { start: vi.fn(async () => {}), send: vi.fn(async () => {}), close: vi.fn(async () => {}) };
+    createClientContext.mockResolvedValueOnce({ definition, client, transport } satisfies ClientContext);
+    const context = await cache.connect(definition.name, { skipCache: true });
+    await context.client.close();
+  };
+
+  await connectWithInstructions('  Call lookup first.  ');
+  await expect(cache.getInstructions(' guided ')).resolves.toBe('Call lookup first.');
+
+  const active = new Client({ name: 'test', version: '1' });
+  vi.spyOn(active, 'getInstructions').mockReturnValue('Active instructions.');
+  cache.clients.set('guided:active', {
+    server: 'guided',
+    promise: Promise.resolve({ definition, client: active, transport: { close: vi.fn(async () => {}) } } as never),
+    allowCachedAuth: true,
+    disableOAuth: false,
+  });
+  cache.activeClientKeys.set('guided', 'guided:active');
+  await expect(cache.getInstructions('guided')).resolves.toBe('Active instructions.');
+  cache.clients.delete('guided:active');
+  cache.activeClientKeys.delete('guided');
+
+  await connectWithInstructions('   ');
+  await expect(cache.getInstructions('guided')).resolves.toBeUndefined();
+
+  await connectWithInstructions('Call lookup first.');
+  cache.supersedeDefinition(definition.name, () => {});
+  await expect(cache.getInstructions('guided')).resolves.toBeUndefined();
+});

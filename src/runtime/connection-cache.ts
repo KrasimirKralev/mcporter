@@ -36,6 +36,7 @@ export class RuntimeConnectionCache {
   private readonly serverGenerations = new Map<string, number>();
   private readonly retirementPromises = new Map<string, Set<Promise<void>>>();
   private readonly lastConnectionInfo = new Map<string, ConnectionInfo>();
+  private readonly lastInstructions = new Map<string, string>();
   private readonly uncachedInFlight = new Set<CachedClientEntry>();
 
   public constructor(
@@ -66,24 +67,22 @@ export class RuntimeConnectionCache {
   public supersedeDefinition(server: string, replace: () => void): void {
     this.bumpServerGeneration(server);
     this.lastConnectionInfo.delete(server.trim());
+    this.lastInstructions.delete(server.trim());
     replace();
     this.retireCachedEntriesForServer(server);
   }
 
   public async getInstructions(server: string): Promise<string | undefined> {
+    const normalized = server.trim();
     const active = this.activeClientForServer(server);
     const fallbackEntries = active ? [] : this.cachedEntriesForServer(server);
     const cached = active ?? (fallbackEntries.length === 1 ? fallbackEntries[0] : undefined);
-    if (!cached) return undefined;
+    if (!cached) return this.lastInstructions.get(normalized);
     try {
       const context = await cached.promise;
-      const instructions =
-        typeof context.client.getInstructions === 'function' ? context.client.getInstructions() : undefined;
-      if (typeof instructions !== 'string') return undefined;
-      const trimmed = instructions.trim();
-      return trimmed.length > 0 ? trimmed : undefined;
+      return instructionsFromClient(context.client);
     } catch {
-      return undefined;
+      return this.lastInstructions.get(normalized);
     }
   }
 
@@ -332,6 +331,12 @@ export class RuntimeConnectionCache {
       contextRef.current = context;
       if (this.serverGeneration(normalized) === generation && !abortController.signal.aborted) {
         this.lastConnectionInfo.set(normalized, connectionInfoFromClient(context.client));
+        const instructions = instructionsFromClient(context.client);
+        if (instructions === undefined) {
+          this.lastInstructions.delete(normalized);
+        } else {
+          this.lastInstructions.set(normalized, instructions);
+        }
       }
       return context;
     });
@@ -711,6 +716,13 @@ export class RuntimeConnectionCache {
       allowCachedAuth === true ? 'cached-auth-on' : allowCachedAuth === false ? 'cached-auth-off' : 'cached-auth-unset';
     return `${server}\u0000oauth-disabled:${disableOAuth ? '1' : '0'}\u0000${cachedAuthKey}`;
   }
+}
+
+function instructionsFromClient(client: ClientContext['client']): string | undefined {
+  const instructions = typeof client.getInstructions === 'function' ? client.getInstructions() : undefined;
+  if (typeof instructions !== 'string') return undefined;
+  const trimmed = instructions.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
 }
 
 function connectionInfoFromClient(client: ClientContext['client']): ConnectionInfo {
