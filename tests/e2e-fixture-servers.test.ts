@@ -98,6 +98,23 @@ describe.each(fixtureKinds)('%s fixture through the real CLI', (fixture) => {
     );
 
     it(
+      'shows server instructions in named listings without --no-oauth',
+      async () => {
+        await withConfig({ fixture: configFor(fixture, transport) }, async (configPath, env) => {
+          const instructions = fixture === 'legacy' ? 'MCP 2025-11-25 fixture' : 'MCP 2026-07-28 fixture';
+          const json = await runCli(['list', 'fixture', '--json'], configPath, env);
+          expect(json.exitCode, json.stderr).toBe(0);
+          expect(parseJson<{ instructions?: string }>(json.stdout).instructions).toContain(instructions);
+
+          const text = await runCli(['list', 'fixture'], configPath, env);
+          expect(text.exitCode, text.stderr).toBe(0);
+          expect(text.stdout).toContain(instructions);
+        });
+      },
+      budget(20_000)
+    );
+
+    it(
       'calls tools and reports structured output',
       async () => {
         await withConfig({ fixture: configFor(fixture, transport) }, async (configPath, env) => {
