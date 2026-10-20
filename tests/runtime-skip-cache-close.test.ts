@@ -31,6 +31,7 @@ it.each(['close', 'supersede'])(
       elicitationHandler: async () => ({ action: 'decline' }),
     });
     const client = new Client({ name: 'test', version: '1' });
+    vi.spyOn(client, 'getInstructions').mockReturnValue('Superseded instructions.');
     const clientClose = vi.spyOn(client, 'close').mockResolvedValue(undefined);
     const transport = { start: vi.fn(async () => {}), send: vi.fn(async () => {}), close: vi.fn(async () => {}) };
     const context: ClientContext = { definition, client, transport };
@@ -104,6 +105,10 @@ it('keeps instructions from an uncached connection until the next connect or def
   cache.activeClientKeys.delete('guided');
 
   await connectWithInstructions('   ');
+  await expect(cache.getInstructions('guided')).resolves.toBeUndefined();
+
+  await connectWithInstructions('Call lookup first.');
+  await connectWithInstructions(undefined);
   await expect(cache.getInstructions('guided')).resolves.toBeUndefined();
 
   await connectWithInstructions('Call lookup first.');
