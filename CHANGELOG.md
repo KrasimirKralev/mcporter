@@ -1,5 +1,7 @@
 # mcporter Changelog
 
+## [0.16.1] - Unreleased
+
 ## [0.16.0] - 2026-10-20
 
 **Highlights:** Encrypt OAuth secrets at rest, restore server instructions in listings, and patch a development dependency vulnerability.
@@ -9,6 +11,8 @@
 - Update Vitest and V8 coverage to 5.0.5 and Hono to 4.13.13, fixing the fixture dependency's static-path middleware bypass advisory while preserving Node 24 support and the 48-hour dependency cooldown.
 - Update Rolldown to 1.2.14 for generated CLI bundling, preserving Node 24 support and the 48-hour dependency cooldown.
 - Move macOS CI and release verification to Xcode 27, execute Intel binaries under asserted Rosetta, and enforce the existing macOS 13.0 binary target in packaging, verification, and native CI smoke tests.
+
+**Verification:** [npm](https://www.npmjs.com/package/mcporter/v/0.16.0), [registry tarball](https://registry.npmjs.org/mcporter/-/mcporter-0.16.0.tgz), [release CI](https://github.com/openclaw/mcporter/actions/runs/39498117641), [native assets](https://github.com/openclaw/mcporter/actions/runs/39495808273), and [browser Gatekeeper proof](https://github.com/openclaw/mcporter/actions/runs/39496793127). npm integrity: `sha512-CrCc2zcDZ7B8WC1wTQNR1VuHjALnVoHb51Tt1p40c019jAkflZf/PJjqo44l0S15iBAJKa6hOq/zVlgI0Pxh8Q==`.
 
 ## [0.15.0] - 2026-10-16
 
