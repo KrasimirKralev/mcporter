@@ -7,6 +7,9 @@
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+import { assertSupportedBunVersion } from '../src/cli/generate/runtime.js';
 
 interface Options {
   readonly target?: string;
@@ -79,7 +82,8 @@ export function createCompiledEntrypoint(projectRoot: string, version: string): 
 // main orchestrates the Bun compile flow for the mcporter binary.
 async function main(): Promise<void> {
   const options = parseArgs(process.argv.slice(2));
-  const projectRoot = path.join(fs.realpathSync(path.dirname(new URL(import.meta.url).pathname)), '..');
+  assertSupportedBunVersion(process.versions.bun ?? 'not running Bun');
+  const projectRoot = path.join(fs.realpathSync(path.dirname(fileURLToPath(import.meta.url))), '..');
   const version = readPackageVersion(projectRoot);
   const distDir = path.join(projectRoot, 'dist-bun');
   if (!fs.existsSync(distDir)) {
@@ -106,7 +110,7 @@ async function main(): Promise<void> {
   }
 
   console.log(`Building mcporter binary → ${outputPath}`);
-  const result = spawnSync('bun', buildArgs, { stdio: 'inherit' });
+  const result = spawnSync(process.execPath, buildArgs, { stdio: 'inherit' });
   try {
     if (result.status !== 0) {
       throw new Error(`bun build exited with status ${result.status ?? 'unknown'}`);
