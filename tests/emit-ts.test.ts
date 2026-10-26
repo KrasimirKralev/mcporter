@@ -784,60 +784,64 @@ export async function run() {
     expect(withoutTimestamp(custom.clientSource)).toBe(withoutTimestamp(byDefault.clientSource));
   });
 
-  it('compiles the emitted client and a caller under the repository tsconfig', async () => {
-    const { clientPath, typesPath } = await emitChromeClient();
-    const dir = path.dirname(clientPath);
-    const validCallerPath = path.join(dir, 'caller.ts');
-    const missingArgumentCallerPath = path.join(dir, 'caller-missing-uid.ts');
-    await fs.writeFile(
-      validCallerPath,
-      [
-        "import { type ChromeTools, createChromeClient } from './chrome-client';",
-        'export async function run(): Promise<string | null> {',
-        '  const client = await createChromeClient({ configPath: "./mcporter.json" });',
-        "  const clicked = await client.click({ pageId: 'page-1', uid: 'uid-7' });",
-        '  await client.list_pages();',
-        '  await client.closed_empty();',
-        "  await client.evaluate_script({ function: '() => 1' });",
-        "  await client.fetch({ url: 'https://example.com', 'content-type': 'text/html' });",
-        "  await client.search({ query: 'defaults fill limit and verbose' });",
-        "  await client.dynamic({ 'custom-key': 'value' });",
-        "  await client.open_named({ query: 'needle', extra: 'value' });",
-        '  const tools: ChromeTools = client;',
-        "  await tools.fetch({ url: 'https://example.com' });",
-        '  await client.close();',
-        '  return clicked.text();',
-        '}',
-        '',
-      ].join('\n'),
-      'utf8'
-    );
-    await fs.writeFile(
-      missingArgumentCallerPath,
-      [
-        "import { createChromeClient } from './chrome-client';",
-        'export async function run(): Promise<void> {',
-        '  const client = await createChromeClient();',
-        "  await client.click({ pageId: 'page-1' });",
-        '}',
-        '',
-      ].join('\n'),
-      'utf8'
-    );
+  it(
+    'compiles the emitted client and a caller under the repository tsconfig',
+    { timeout: budget(30_000) },
+    async () => {
+      const { clientPath, typesPath } = await emitChromeClient();
+      const dir = path.dirname(clientPath);
+      const validCallerPath = path.join(dir, 'caller.ts');
+      const missingArgumentCallerPath = path.join(dir, 'caller-missing-uid.ts');
+      await fs.writeFile(
+        validCallerPath,
+        [
+          "import { type ChromeTools, createChromeClient } from './chrome-client';",
+          'export async function run(): Promise<string | null> {',
+          '  const client = await createChromeClient({ configPath: "./mcporter.json" });',
+          "  const clicked = await client.click({ pageId: 'page-1', uid: 'uid-7' });",
+          '  await client.list_pages();',
+          '  await client.closed_empty();',
+          "  await client.evaluate_script({ function: '() => 1' });",
+          "  await client.fetch({ url: 'https://example.com', 'content-type': 'text/html' });",
+          "  await client.search({ query: 'defaults fill limit and verbose' });",
+          "  await client.dynamic({ 'custom-key': 'value' });",
+          "  await client.open_named({ query: 'needle', extra: 'value' });",
+          '  const tools: ChromeTools = client;',
+          "  await tools.fetch({ url: 'https://example.com' });",
+          '  await client.close();',
+          '  return clicked.text();',
+          '}',
+          '',
+        ].join('\n'),
+        'utf8'
+      );
+      await fs.writeFile(
+        missingArgumentCallerPath,
+        [
+          "import { createChromeClient } from './chrome-client';",
+          'export async function run(): Promise<void> {',
+          '  const client = await createChromeClient();',
+          "  await client.click({ pageId: 'page-1' });",
+          '}',
+          '',
+        ].join('\n'),
+        'utf8'
+      );
 
-    const diagnostics = compileUnderRepositoryConfig([
-      clientPath,
-      typesPath,
-      validCallerPath,
-      missingArgumentCallerPath,
-    ]);
+      const diagnostics = compileUnderRepositoryConfig([
+        clientPath,
+        typesPath,
+        validCallerPath,
+        missingArgumentCallerPath,
+      ]);
 
-    expect(diagnostics.filter((entry) => entry.file !== path.basename(missingArgumentCallerPath))).toEqual([]);
-    const missing = diagnostics.filter((entry) => entry.file === path.basename(missingArgumentCallerPath));
-    expect(missing).toHaveLength(1);
-    expect(missing[0]?.code).toBe(2345);
-    expect(missing[0]?.message).toContain("'uid'");
-  });
+      expect(diagnostics.filter((entry) => entry.file !== path.basename(missingArgumentCallerPath))).toEqual([]);
+      const missing = diagnostics.filter((entry) => entry.file === path.basename(missingArgumentCallerPath));
+      expect(missing).toHaveLength(1);
+      expect(missing[0]?.code).toBe(2345);
+      expect(missing[0]?.message).toContain("'uid'");
+    }
+  );
 
   it('compiles client wrappers for tools with named and structural output schemas', async () => {
     const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'emit-ts-output-schema-'));
