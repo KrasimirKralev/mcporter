@@ -71,6 +71,7 @@ Key details:
 ## Flag-Based Syntax Details
 
 - `--key value`, `--key=value`, `key=value`, `key:value`, `key: value`, and `key:=value` all map to the same named-argument handling, so you can type whichever feels most natural for your shell. Long flag keys convert kebab-case to camelCase (`--save-to-drafts true` becomes `saveToDrafts: true`). The `:=` form is accepted as a compatibility alias for `=`.
+- The first separator starts the value; later `=` and `:` characters stay intact. For example, `'query:https://example.com/?a=b&c=d'` passes the complete URL as `query`. Quote values containing shell metacharacters.
 - By default, arguments keep the same validation pipeline as the function-call syntax—enums, numbers, and booleans are coerced automatically, and missing required fields raise errors.
 - `--args -`, `--params -`, and `--json -` read a JSON object from stdin.
 - Named flag-style values can read exact UTF-8 text from a file with `key=@path` or `--key @path`. Paths resolve from the current working directory, file contents remain strings without coercion, and `key=@@literal` produces the literal value `@literal`. Function-call strings such as `body: "@literal"` remain literal.
