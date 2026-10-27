@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "deedpage": {
+      "description": "Publish HTML or a folder of files to a public URL on deed.page without an API key.",
+      "baseUrl": "https://deed.page/mcp",
+      "headers": {
+        "User-Agent": "mcporter/deed-page-example"
+      }
+    }
+  },
+  "imports": []
+}

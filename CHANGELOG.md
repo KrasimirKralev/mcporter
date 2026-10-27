@@ -2,6 +2,8 @@
 
 ## [0.16.2] - Unreleased
 
+- Add a runnable, isolated deed.page MCP example for publishing static HTML, with private owner-token storage and tested failure handling. Thanks @f-o-x11 (#472).
+
 - Let `--tool` and `tool=` override the tool of a configured `server.tool` selector instead of silently calling the selector's tool, matching the ad-hoc HTTP path and the tool-calling docs. Thanks @KrasimirKralev (#474).
 
 ## [0.16.1] - 2026-10-26
