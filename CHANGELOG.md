@@ -2,6 +2,8 @@
 
 ## [0.16.2] - Unreleased
 
+- Let `--tool` and `tool=` override the tool of a configured `server.tool` selector instead of silently calling the selector's tool, matching the ad-hoc HTTP path and the tool-calling docs. Thanks @KrasimirKralev (#474).
+
 ## [0.16.1] - 2026-10-26
 
 **Highlights:** Patch native-build and dependency security vulnerabilities with Bun 1.4.4 and body-parser fixes, and restore silent OAuth refresh for header-only deployments.

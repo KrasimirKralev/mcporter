@@ -108,6 +108,31 @@ describe('CLI call execution behavior', () => {
     logSpy.mockRestore();
   });
 
+  it.each([
+    ['--tool', ['linear.list_issues', '--tool', 'create_issue']],
+    ['tool=', ['linear.list_issues', 'tool=create_issue']],
+  ])('lets %s override the tool of a configured server.tool selector', async (_label, argv) => {
+    const { handleCall } = await cliModulePromise;
+    const { runtime, callTool } = createRuntimeStub({
+      linear: [{ name: 'list_issues' }, { name: 'create_issue' }],
+    });
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    await handleCall(runtime, argv);
+    expect(callTool).toHaveBeenCalledWith('linear', 'create_issue', expect.anything());
+    logSpy.mockRestore();
+  });
+
+  it('keeps the selector tool when a bare positional follows a server.tool selector', async () => {
+    const { handleCall } = await cliModulePromise;
+    const { runtime, callTool } = createRuntimeStub({
+      linear: [{ name: 'list_issues' }, { name: 'create_issue' }],
+    });
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    await handleCall(runtime, ['linear.list_issues', 'create_issue']);
+    expect(callTool).toHaveBeenCalledWith('linear', 'list_issues', expect.anything());
+    logSpy.mockRestore();
+  });
+
   it('restores numeric-looking key=value args to schema-declared strings', async () => {
     const { handleCall } = await cliModulePromise;
     const { runtime, callTool, listTools } = createRuntimeStub({
