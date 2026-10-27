@@ -23,6 +23,8 @@ export interface CallArgsParseResult {
   selector?: string;
   server?: string;
   tool?: string;
+  // Set when `tool` is the bare positional after the selector, not --tool / tool=.
+  toolFromPositional?: boolean;
   args: Record<string, unknown>;
   schemaStringCoercionCandidates?: Record<string, string>;
   schemaArrayCoercionCandidates?: Record<string, string>;
@@ -188,6 +190,7 @@ function resolveSelectorAndTool(
     !callExpressionProvidedTool
   ) {
     result.tool = positional.shift();
+    result.toolFromPositional = true;
   }
 }
 

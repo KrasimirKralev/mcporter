@@ -320,7 +320,7 @@ function resolveCallTarget(
     const split = splitServerToolSelector(selector);
     server = split?.server ?? selector.slice(0, selector.indexOf('.'));
     // An explicit --tool / tool= overrides the selector's tool, as on the ad-hoc HTTP path.
-    tool ??= split?.tool;
+    tool = parsed.toolFromPositional ? split?.tool : (tool ?? split?.tool);
   } else if (selector && !server) {
     server = selector;
   } else if (selector && !tool && selector !== server) {
