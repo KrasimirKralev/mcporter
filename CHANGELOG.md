@@ -1,5 +1,7 @@
 # mcporter Changelog
 
+## [0.16.2] - Unreleased
+
 ## [0.16.1] - 2026-10-26
 
 **Highlights:** Patch native-build and dependency security vulnerabilities with Bun 1.4.4 and body-parser fixes, and restore silent OAuth refresh for header-only deployments.
@@ -11,6 +13,8 @@
 - Preserve equals signs inside colon-style CLI argument values, including URLs, commands, and JSON, while retaining the `:=` alias. Thanks @Oscar-Williams (#465).
 - Refresh jose and lint/format tooling while preserving Node 24 support and the 48-hour dependency cooldown; isolate daemon elicitation coverage from Windows process-query failures while retaining real process-retirement integration tests.
 - Add a runnable, isolated Keenable MCP example for keyless web search and page fetching. Thanks @ilya-bogin-keenable.
+
+**Verification:** [npm](https://www.npmjs.com/package/mcporter/v/0.16.1), [registry tarball](https://registry.npmjs.org/mcporter/-/mcporter-0.16.1.tgz), [release CI](https://github.com/openclaw/mcporter/actions/runs/40438757227), [release rehearsal](https://github.com/openclaw/mcporter/actions/runs/40436920594), and [native assets](https://github.com/openclaw/mcporter/actions/runs/40438471153). npm integrity: `sha512-rVyBLZN/aIV8unDrn6VA5RWzskyM8HDVmsFJ4CfoeX7DFWSVchm1gfw66xkFgTiQHMnp7VVdGwug8PNhOrDQgg==`.
 
 ## [0.16.0] - 2026-10-20
 
