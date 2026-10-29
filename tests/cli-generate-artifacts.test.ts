@@ -499,9 +499,16 @@ describe('resolveBundleTarget', () => {
     expect(resolveBundleTarget({ bundle: true, outputPath: path.join('dist', 'linear.ts') })).toBe(
       path.join('dist', 'linear.js')
     );
-    expect(() => resolveBundleTarget({ bundle: true, outputPath: path.join('dist', 'linear.js') })).toThrow(
-      '--bundle requires an explicit output path when --output already ends in .js'
-    );
+    for (const stem of ['.', '..']) {
+      expect(resolveBundleTarget({ bundle: true, outputPath: path.join('dist', `${stem}.ts`) })).toBe(
+        path.join('dist', `${stem}.js`)
+      );
+    }
+    for (const output of ['linear.js', 'linear.JS']) {
+      expect(() => resolveBundleTarget({ bundle: true, outputPath: path.join('dist', output) })).toThrow(
+        '--bundle requires an explicit output path when --output already ends in .js'
+      );
+    }
   });
 
   it('rejects ambiguous and missing compile destinations', () => {

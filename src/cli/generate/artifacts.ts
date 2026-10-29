@@ -198,11 +198,13 @@ export function resolveBundleTarget({
       throw new Error('--bundle requires an explicit output path when used with --compile.');
     }
     // A bare --bundle writes `<name>.js` next to the template, as the docs and `--bundle [path]` promise.
-    const target = `${path.join(path.dirname(outputPath), path.basename(outputPath, path.extname(outputPath)))}.js`;
-    if (path.resolve(target) === path.resolve(outputPath)) {
+    const ext = path.extname(outputPath);
+    // Case-insensitive filesystems would alias `name.JS` and `name.js`.
+    if (ext.toLowerCase() === '.js') {
       throw new Error('--bundle requires an explicit output path when --output already ends in .js.');
     }
-    return target;
+    // Append the suffix before joining so a `.` or `..` stem stays a file name, not a directory.
+    return path.join(path.dirname(outputPath), `${path.basename(outputPath, ext)}.js`);
   }
   if (typeof compile === 'string') {
     const ext = path.extname(compile);
