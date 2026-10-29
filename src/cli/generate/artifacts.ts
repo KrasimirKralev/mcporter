@@ -194,7 +194,15 @@ export function resolveBundleTarget({
     return bundle;
   }
   if (bundle) {
-    throw new Error('--bundle requires an explicit output path when used with --compile.');
+    if (compile) {
+      throw new Error('--bundle requires an explicit output path when used with --compile.');
+    }
+    // A bare --bundle writes `<name>.js` next to the template, as the docs and `--bundle [path]` promise.
+    const target = `${path.join(path.dirname(outputPath), path.basename(outputPath, path.extname(outputPath)))}.js`;
+    if (path.resolve(target) === path.resolve(outputPath)) {
+      throw new Error('--bundle requires an explicit output path when --output already ends in .js.');
+    }
+    return target;
   }
   if (typeof compile === 'string') {
     const ext = path.extname(compile);

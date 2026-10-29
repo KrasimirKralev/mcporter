@@ -495,6 +495,15 @@ describe('resolveBundleTarget', () => {
     );
   });
 
+  it('puts a bare --bundle next to the template', () => {
+    expect(resolveBundleTarget({ bundle: true, outputPath: path.join('dist', 'linear.ts') })).toBe(
+      path.join('dist', 'linear.js')
+    );
+    expect(() => resolveBundleTarget({ bundle: true, outputPath: path.join('dist', 'linear.js') })).toThrow(
+      '--bundle requires an explicit output path when --output already ends in .js'
+    );
+  });
+
   it('rejects ambiguous and missing compile destinations', () => {
     expect(() => resolveBundleTarget({ bundle: true, compile: true, outputPath: 'source.ts' })).toThrow(
       '--bundle requires an explicit output path'
